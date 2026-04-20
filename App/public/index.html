@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Détroits du Monde</title>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+:root {
+  --ink: #070510;
+  --gold: #c9a84c;
+  --gold-light: #e8c97a;
+  --parchment: #f5edd8;
+  --cream: #ede0c4;
+  --text: #e8dcc8;
+  --text-dim: #9a8f7a;
+  --card-bg: #100e1e;
+  --border: rgba(201,168,76,0.3);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--ink)}
+#app{position:fixed;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;background:var(--ink);overflow:hidden}
+
+/* HEADER */
+.header{
+  padding-top:calc(14px + env(safe-area-inset-top));
+  padding-bottom:10px;
+  padding-left:16px;
+  padding-right:16px;
+  background:var(--ink);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.header-title{
+  font-family:'IM Fell English',serif;
+  font-size:20px;
+  color:var(--gold);
+  letter-spacing:0.02em;
+  flex:1;
+  text-align:center;
+}
+.header-title span{font-family:'Cormorant Garamond',serif;font-size:12px;color:var(--text-dim);display:block;letter-spacing:0.1em;text-transform:uppercase}
+.icon-btn{
+  width:36px;height:36px;
+  background:none;border:1px solid var(--border);
+  border-radius:8px;color:var(--gold);
+  font-size:17px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+
+/* TABS */
+.tabs{
+  display:flex;
+  border-bottom:1px solid var(--border);
+  background:var(--ink);
+  flex-shrink:0;
+}
+.tab{
+  flex:1;padding:10px 4px;
+  background:none;border:none;
+  font-family:'Cormorant Garamond',serif;
+  font-size:13px;letter-spacing:0.06em;
+  color:var(--text-dim);cursor:pointer;
+  text-transform:uppercase;
+  border-bottom:2px solid transparent;
+  transition:all 0.2s;
+}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+
+/* MAIN SCROLL */
+.main{flex:1;overflow-y:auto;padding-bottom:calc(12px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
+
+/* PANELS */
+.panel{display:none}
+.panel.active{display:block}
+
+/* LIST PANEL */
+.list-search{
+  padding:12px 16px;
+  position:sticky;top:0;
+  background:var(--ink);
+  border-bottom:1px solid var(--border);
+  z-index:10;
+}
+.list-search input{
+  width:100%;padding:8px 12px;
+  background:rgba(255,255,255,0.05);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--text);
+  font-family:'Cormorant Garamond',serif;
+  font-size:15px;
+  outline:none;
+}
+.list-search input::placeholder{color:var(--text-dim)}
+
+.strait-item{
+  display:flex;align-items:center;
+  padding:12px 16px;
+  border-bottom:1px solid rgba(201,168,76,0.12);
+  cursor:pointer;
+  transition:background 0.15s;
+  gap:12px;
+}
+.strait-item:active{background:rgba(201,168,76,0.08)}
+.strait-emoji{font-size:24px;flex-shrink:0}
+.strait-info{flex:1;min-width:0}
+.strait-name{font-family:'IM Fell English',serif;font-size:16px;color:var(--gold);line-height:1.2}
+.strait-sub{font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--text-dim);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.strait-length{font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--text-dim);flex-shrink:0;text-align:right}
+
+/* MAP PANEL */
+#map-panel{height:100%;display:none;flex-direction:column}
+#map-panel.active{display:flex}
+#map{flex:1}
+
+/* Leaflet custom */
+.leaflet-container{background:#0e0b1e}
+.custom-marker{
+  background:var(--gold);
+  width:28px;height:28px;
+  border-radius:50%;
+  border:2px solid var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;
+  box-shadow:0 0 8px rgba(201,168,76,0.5);
+  cursor:pointer;
+}
+.leaflet-popup-content-wrapper{
+  background:var(--card-bg);
+  border:1px solid var(--border);
+  border-radius:10px;
+  color:var(--text);
+  box-shadow:0 4px 20px rgba(0,0,0,0.6);
+}
+.leaflet-popup-tip{background:var(--card-bg)}
+.leaflet-popup-content{
+  font-family:'Cormorant Garamond',serif;
+  margin:12px 14px;
+}
+.popup-name{
+  font-family:'IM Fell English',serif;
+  font-size:16px;color:var(--gold);
+  margin-bottom:4px;
+}
+.popup-detail{font-size:13px;color:var(--text-dim);margin-bottom:6px}
+.popup-btn{
+  display:block;width:100%;
+  padding:6px;margin-top:8px;
+  background:rgba(201,168,76,0.15);
+  border:1px solid var(--border);
+  border-radius:6px;
+  color:var(--gold);
+  font-family:'Cormorant Garamond',serif;
+  font-size:13px;text-align:center;cursor:pointer;
+  letter-spacing:0.05em;
+}
+
+/* DETAIL SHEET */
+.detail-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.7);
+  z-index:200;
+  display:none;
+  align-items:flex-end;
+}
+.detail-overlay.open{display:flex}
+.detail-sheet{
+  width:100%;max-height:85vh;
+  background:var(--card-bg);
+  border-top:1px solid var(--border);
+  border-radius:18px 18px 0 0;
+  overflow-y:auto;
+  padding-bottom:calc(20px + env(safe-area-inset-bottom));
+  animation:slideUp 0.3s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.detail-handle{
+  width:36px;height:4px;
+  background:var(--border);
+  border-radius:2px;
+  margin:10px auto 16px;
+}
+.detail-body{padding:0 18px 10px}
+.detail-flag{font-size:32px;margin-bottom:6px}
+.detail-title{font-family:'IM Fell English',serif;font-size:24px;color:var(--gold);line-height:1.2}
+.detail-subtitle{font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--text-dim);margin:4px 0 14px;font-style:italic}
+.detail-portrait{
+  width:100%;max-height:180px;object-fit:cover;
+  border-radius:10px;margin-bottom:14px;
+  border:1px solid var(--border);
+}
+.detail-section{margin-bottom:14px}
+.detail-section-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:11px;letter-spacing:0.15em;
+  text-transform:uppercase;color:var(--text-dim);
+  margin-bottom:6px;
+}
+.detail-text{
+  font-family:'Cormorant Garamond',serif;
+  font-size:15px;color:var(--text);
+  line-height:1.6;
+}
+.detail-stats{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:8px;margin-bottom:14px;
+}
+.stat-card{
+  background:rgba(201,168,76,0.07);
+  border:1px solid var(--border);
+  border-radius:8px;padding:10px 12px;
+}
+.stat-label{font-family:'Cormorant Garamond',serif;font-size:11px;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase}
+.stat-value{font-family:'IM Fell English',serif;font-size:16px;color:var(--gold);margin-top:2px}
+.detail-close{
+  position:absolute;top:calc(16px + env(safe-area-inset-top));right:16px;
+  width:32px;height:32px;
+  background:rgba(201,168,76,0.15);
+  border:1px solid var(--border);
+  border-radius:50%;color:var(--gold);
+  font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* QUIZ PANEL */
+.quiz-container{padding:16px}
+.quiz-score-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;
+  background:rgba(201,168,76,0.08);
+  border:1px solid var(--border);
+  border-radius:10px;margin-bottom:16px;
+}
+.quiz-score-label{font-family:'Cormorant Garamond',serif;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim)}
+.quiz-score-val{font-family:'IM Fell English',serif;font-size:20px;color:var(--gold)}
+.quiz-card{
+  background:var(--card-bg);
+  border:1px solid var(--border);
+  border-radius:14px;padding:18px;
+  margin-bottom:14px;
+}
+.quiz-q-num{font-family:'Cormorant Garamond',serif;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px}
+.quiz-question{font-family:'IM Fell English',serif;font-size:18px;color:var(--text);line-height:1.4;margin-bottom:16px}
+.quiz-options{display:flex;flex-direction:column;gap:8px}
+.quiz-option{
+  padding:12px 14px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border);
+  border-radius:8px;
+  font-family:'Cormorant Garamond',serif;
+  font-size:15px;color:var(--text);
+  cursor:pointer;text-align:left;
+  transition:all 0.15s;
+}
+.quiz-option:active{background:rgba(201,168,76,0.1)}
+.quiz-option.correct{background:rgba(76,201,130,0.15);border-color:rgba(76,201,130,0.5);color:#4cc982}
+.quiz-option.wrong{background:rgba(201,76,76,0.15);border-color:rgba(201,76,76,0.5);color:#c94c4c}
+.quiz-option.reveal{background:rgba(201,168,76,0.1);border-color:var(--gold);color:var(--gold)}
+.quiz-option:disabled{cursor:default}
+.quiz-feedback{
+  font-family:'Cormorant Garamond',serif;
+  font-size:14px;line-height:1.5;
+  padding:10px 14px;
+  border-radius:8px;
+  margin-top:10px;
+}
+.quiz-feedback.ok{background:rgba(76,201,130,0.08);color:#4cc982;border:1px solid rgba(76,201,130,0.2)}
+.quiz-feedback.ko{background:rgba(201,76,76,0.08);color:#e07070;border:1px solid rgba(201,76,76,0.2)}
+.quiz-next{
+  width:100%;padding:12px;margin-top:12px;
+  background:rgba(201,168,76,0.15);
+  border:1px solid var(--gold);
+  border-radius:8px;
+  font-family:'Cormorant Garamond',serif;
+  font-size:15px;letter-spacing:0.05em;
+  color:var(--gold);cursor:pointer;
+  display:none;
+}
+.quiz-next.show{display:block}
+.quiz-end{text-align:center;padding:30px 16px}
+.quiz-end-icon{font-size:48px;margin-bottom:12px}
+.quiz-end-title{font-family:'IM Fell English',serif;font-size:26px;color:var(--gold);margin-bottom:8px}
+.quiz-end-text{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--text-dim);margin-bottom:20px}
+.quiz-restart{
+  padding:12px 28px;
+  background:rgba(201,168,76,0.15);
+  border:1px solid var(--gold);
+  border-radius:8px;
+  font-family:'Cormorant Garamond',serif;
+  font-size:15px;letter-spacing:0.05em;
+  color:var(--gold);cursor:pointer;
+}
+
+/* SETTINGS */
+.settings-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.75);
+  z-index:300;
+  display:none;align-items:flex-end;
+}
+.settings-overlay.open{display:flex}
+.settings-sheet{
+  width:100%;max-height:90vh;
+  background:var(--card-bg);
+  border-top:1px solid var(--border);
+  border-radius:18px 18px 0 0;
+  overflow-y:auto;
+  padding-bottom:calc(20px + env(safe-area-inset-bottom));
+  animation:slideUp 0.3s ease;
+}
+.settings-header{
+  padding:16px 18px 12px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.settings-title{font-family:'IM Fell English',serif;font-size:20px;color:var(--gold)}
+.settings-close{
+  width:30px;height:30px;
+  background:rgba(201,168,76,0.1);
+  border:1px solid var(--border);
+  border-radius:50%;color:var(--gold);
+  cursor:pointer;font-size:15px;
+  display:flex;align-items:center;justify-content:center;
+}
+.apps-section-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:11px;letter-spacing:0.15em;text-transform:uppercase;
+  color:var(--text-dim);padding:14px 18px 8px;
+}
+.apps-list{padding:0 18px}
+.app-row{
+  display:flex;align-items:center;
+  padding:10px 0;
+  border-bottom:1px solid rgba(201,168,76,0.1);
+  gap:12px;cursor:pointer;
+}
+.app-real-icon{width:44px;height:44px;border-radius:10px;background:rgba(201,168,76,0.1);flex-shrink:0;object-fit:cover}
+.app-name{
+  flex:1;
+  font-family:'Cormorant Garamond',serif;
+  font-size:14px;color:var(--text);
+  line-height:1.3;
+}
+.app-store-badge{height:26px;flex-shrink:0}
+.settings-divider{height:1px;background:var(--border);margin:14px 18px}
+.settings-credits{
+  padding:0 18px;
+  font-family:'Cormorant Garamond',serif;
+  font-size:13px;color:var(--text-dim);
+  line-height:1.6;
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <button class="icon-btn" id="lang-btn" onclick="toggleLang()" title="Language">🇫🇷</button>
+    <div class="header-title">
+      <span id="app-subtitle">Passages du Monde</span>
+      <span id="app-title-main">Détroits</span>
+    </div>
+    <button class="icon-btn" onclick="openSettings()">⚙️</button>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" id="tab-list" onclick="switchTab('list')" data-fr="Liste" data-en="List">Liste</button>
+    <button class="tab" id="tab-map" onclick="switchTab('map')" data-fr="Carte" data-en="Map">Carte</button>
+    <button class="tab" id="tab-quiz" onclick="switchTab('quiz')" data-fr="Quiz" data-en="Quiz">Quiz</button>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main" id="main-scroll">
+
+    <!-- LIST PANEL -->
+    <div class="panel active" id="panel-list">
+      <div class="list-search">
+        <input type="text" id="search-input" placeholder="Rechercher un détroit…" oninput="filterList(this.value)">
+      </div>
+      <div id="strait-list"></div>
+    </div>
+
+    <!-- MAP PANEL -->
+    <div class="panel" id="panel-map" style="height:calc(100vh - 120px - env(safe-area-inset-top));display:none;flex-direction:column;">
+      <div id="map" style="flex:1;width:100%;"></div>
+    </div>
+
+    <!-- QUIZ PANEL -->
+    <div class="panel" id="panel-quiz">
+      <div class="quiz-container" id="quiz-container"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- DETAIL SHEET -->
+<div class="detail-overlay" id="detail-overlay" onclick="closeDetail(event)">
+  <div class="detail-sheet" id="detail-sheet">
+    <div class="detail-handle"></div>
+    <div class="detail-body" id="detail-body"></div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="settings-overlay" id="settings-overlay" onclick="closeSettings(event)">
+  <div class="settings-sheet" id="settings-sheet">
+    <div class="settings-header">
+      <div class="settings-title" id="settings-title-text">Autres applications</div>
+      <button class="settings-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="apps-section-title" id="apps-section-label">MES APPLICATIONS</div>
+    <div class="apps-list" id="apps-list"></div>
+    <div class="settings-divider"></div>
+    <div class="settings-credits" id="settings-credits">
+      © Michel Garlandat<br>
+      <span id="credits-text">Toutes les données sont à titre informatif.</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIG & LANG
+// ============================================================
+let LANG = 'fr';
+
+const T = {
+  fr: {
+    appSubtitle: 'Passages du Monde',
+    appTitle: 'Détroits',
+    search: 'Rechercher un détroit…',
+    tabList: 'Liste', tabMap: 'Carte', tabQuiz: 'Quiz',
+    settingsTitle: 'Autres applications',
+    appsLabel: 'MES APPLICATIONS',
+    credits: 'Toutes les données sont à titre informatif.',
+    statWidth: 'Largeur min.', statLength: 'Longueur', statDepth: 'Profondeur max.', statCountries: 'Pays riverains',
+    detailMore: 'Voir sur la carte',
+    quizQ: 'Question', quizOf: 'sur',
+    quizCorrect: '✓ Bonne réponse !', quizWrong: '✗ Mauvaise réponse.',
+    quizNext: 'Question suivante →',
+    quizEndTitle: 'Quiz terminé !', quizEndText: 'Votre score',
+    quizRestart: 'Recommencer',
+    quizScore: 'Score',
+    popupBtn: '→ Voir le détail',
+  },
+  en: {
+    appSubtitle: 'World Passages',
+    appTitle: 'Straits',
+    search: 'Search a strait…',
+    tabList: 'List', tabMap: 'Map', tabQuiz: 'Quiz',
+    settingsTitle: 'Other apps',
+    appsLabel: 'MY APPS',
+    credits: 'All data is for informational purposes.',
+    statWidth: 'Min. width', statLength: 'Length', statDepth: 'Max. depth', statCountries: 'Bordering countries',
+    detailMore: 'See on map',
+    quizQ: 'Question', quizOf: 'of',
+    quizCorrect: '✓ Correct!', quizWrong: '✗ Wrong.',
+    quizNext: 'Next question →',
+    quizEndTitle: 'Quiz complete!', quizEndText: 'Your score',
+    quizRestart: 'Restart',
+    quizScore: 'Score',
+    popupBtn: '→ See details',
+  }
+};
+
+function t(key){ return T[LANG][key] || key; }
+
+function toggleLang(){
+  LANG = LANG === 'fr' ? 'en' : 'fr';
+  document.getElementById('lang-btn').textContent = LANG === 'fr' ? '🇫🇷' : '🇬🇧';
+  applyLang();
+  renderList();
+  if(currentTab === 'quiz') initQuiz();
+  if(currentTab === 'map' && map) refreshMarkers();
+}
+
+function applyLang(){
+  document.getElementById('app-subtitle').textContent = t('appSubtitle');
+  document.getElementById('app-title-main').textContent = t('appTitle');
+  document.getElementById('search-input').placeholder = t('search');
+  document.querySelectorAll('.tab').forEach(b=>{b.textContent = b.dataset[LANG]});
+  document.getElementById('settings-title-text').textContent = t('settingsTitle');
+  document.getElementById('apps-section-label').textContent = t('appsLabel');
+  document.getElementById('credits-text').textContent = t('credits');
+}
+
+// ============================================================
+// DATA — 30 DÉTROITS
+// ============================================================
+const STRAITS = [
+  {
+    id:'gibraltar',emoji:'🌊',lat:35.987,lng:-5.353,
+    fr:{name:'Détroit de Gibraltar',sub:'Europe / Afrique',desc:'Passage stratégique entre l\'Atlantique et la Méditerranée, long de 58 km et large de seulement 14 km en son point le plus étroit. Il sépare l\'Espagne de Maroc. Contrôlé historiquement par les Britanniques depuis 1704.',pays:'Espagne, Maroc, Gibraltar'},
+    en:{name:'Strait of Gibraltar',sub:'Europe / Africa',desc:'Strategic passage between the Atlantic Ocean and the Mediterranean Sea, 58 km long and only 14 km wide at its narrowest point. It separates Spain from Morocco, and has been controlled by Britain since 1704.',pays:'Spain, Morocco, Gibraltar'},
+    width:'14 km', length:'58 km', depth:'900 m',
+  },
+  {
+    id:'hormuz',emoji:'⚓',lat:26.567,lng:56.267,
+    fr:{name:'Détroit d\'Ormuz',sub:'Golfe Persique / Mer d\'Oman',desc:'L\'un des détroits les plus stratégiques au monde : environ 20% du pétrole mondial transite par ce passage de 33 km de large. Il sépare Oman et les Émirats arabes unis de l\'Iran.',pays:'Iran, Oman, Émirats arabes unis'},
+    en:{name:'Strait of Hormuz',sub:'Persian Gulf / Sea of Oman',desc:'One of the world\'s most strategic straits: approximately 20% of global oil transits through this 33 km wide passage. It separates Oman and the UAE from Iran.',pays:'Iran, Oman, United Arab Emirates'},
+    width:'33 km', length:'80 km', depth:'60 m',
+  },
+  {
+    id:'malacca',emoji:'🚢',lat:2.5,lng:101.5,
+    fr:{name:'Détroit de Malacca',sub:'Mer d\'Andaman / Mer de Chine',desc:'Voie maritime la plus fréquentée au monde : plus de 80 000 navires par an. Long de 800 km, il sépare la péninsule malaisienne de Sumatra. Passage vital du commerce Asie-Europe.',pays:'Malaisie, Singapour, Indonésie'},
+    en:{name:'Strait of Malacca',sub:'Andaman Sea / South China Sea',desc:'The world\'s busiest shipping lane, with over 80,000 vessels per year. It is 800 km long and separates the Malay Peninsula from Sumatra. Vital passage for Asia-Europe trade.',pays:'Malaysia, Singapore, Indonesia'},
+    width:'65 km', length:'800 km', depth:'27 m',
+  },
+  {
+    id:'bosphore',emoji:'🌉',lat:41.1,lng:29.05,
+    fr:{name:'Détroit du Bosphore',sub:'Mer Noire / Mer de Marmara',desc:'Séparant l\'Europe de l\'Asie au cœur d\'Istanbul, le Bosphore est l\'un des passages maritimes les plus pittoresques et les plus stratégiques du monde. Long de 31 km, il est le lien vital entre la mer Noire et la Méditerranée.',pays:'Turquie'},
+    en:{name:'Bosphorus Strait',sub:'Black Sea / Sea of Marmara',desc:'Separating Europe from Asia at the heart of Istanbul, the Bosphorus is one of the world\'s most picturesque and strategic straits. It is 31 km long and a vital link between the Black Sea and the Mediterranean.',pays:'Turkey'},
+    width:'0.7 km', length:'31 km', depth:'110 m',
+  },
+  {
+    id:'dardanelles',emoji:'⚔️',lat:40.23,lng:26.4,
+    fr:{name:'Dardanelles',sub:'Mer Égée / Mer de Marmara',desc:'Détroit historique de Turquie, théâtre de la célèbre bataille des Dardanelles en 1915 (Gallipoli). Long de 61 km, il relie la mer Égée à la mer de Marmara et joue un rôle clé dans l\'accès à la mer Noire.',pays:'Turquie'},
+    en:{name:'Dardanelles',sub:'Aegean Sea / Sea of Marmara',desc:'Historic Turkish strait, scene of the famous Battle of the Dardanelles in 1915 (Gallipoli). 61 km long, it connects the Aegean Sea to the Sea of Marmara and plays a key role in access to the Black Sea.',pays:'Turkey'},
+    width:'1.2 km', length:'61 km', depth:'55 m',
+  },
+  {
+    id:'dover',emoji:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',lat:51.03,lng:1.47,
+    fr:{name:'Pas de Calais',sub:'Atlantique / Mer du Nord',desc:'Le point le plus étroit entre la France et l\'Angleterre (34 km), c\'est la voie maritime la plus fréquentée d\'Europe. C\'est ici que fut construit le Tunnel sous la Manche, inauguré en 1994.',pays:'France, Royaume-Uni'},
+    en:{name:'Strait of Dover',sub:'Atlantic / North Sea',desc:'The narrowest point between France and England (34 km), this is Europe\'s busiest shipping lane. The Channel Tunnel, opened in 1994, was built here.',pays:'France, United Kingdom'},
+    width:'34 km', length:'90 km', depth:'64 m',
+  },
+  {
+    id:'magellan',emoji:'🧭',lat:-52.6,lng:-68.9,
+    fr:{name:'Détroit de Magellan',sub:'Atlantique / Pacifique',desc:'Découvert par Fernand de Magellan en 1520 lors de son tour du monde, ce détroit de 530 km de long traverse la Patagonie et la Terre de Feu. Il permit la première circumnavigation du globe.',pays:'Chili, Argentine'},
+    en:{name:'Strait of Magellan',sub:'Atlantic / Pacific',desc:'Discovered by Ferdinand Magellan in 1520 during his circumnavigation, this 530 km long strait crosses Patagonia and Tierra del Fuego. It enabled the first circumnavigation of the globe.',pays:'Chile, Argentina'},
+    width:'2 km', length:'530 km', depth:'200 m',
+  },
+  {
+    id:'drake',emoji:'🌪️',lat:-57.0,lng:-65.0,
+    fr:{name:'Passage de Drake',sub:'Atlantique Sud / Pacifique Sud',desc:'Le passage maritime le plus agité du monde, entre la pointe sud de l\'Amérique du Sud et l\'Antarctique. Large de 800 km, il est redouté des navigateurs pour ses tempêtes violentes.',pays:'Chili, Argentine, Antarctique'},
+    en:{name:'Drake Passage',sub:'South Atlantic / South Pacific',desc:'The world\'s roughest sea passage, between the southern tip of South America and Antarctica. 800 km wide, it is feared by sailors for its violent storms.',pays:'Chile, Argentina, Antarctica'},
+    width:'800 km', length:'800 km', depth:'4800 m',
+  },
+  {
+    id:'berring',emoji:'🐋',lat:65.7,lng:-168.9,
+    fr:{name:'Détroit de Béring',sub:'Océan Arctique / Mer de Béring',desc:'Séparant l\'Asie de l\'Amérique du Nord par seulement 85 km, ce détroit est d\'une importance capitale en paléoanthropologie : il y a 20 000 ans, un pont terrestre (Béringie) permettait le passage à pied.',pays:'États-Unis, Russie'},
+    en:{name:'Bering Strait',sub:'Arctic Ocean / Bering Sea',desc:'Separating Asia from North America by only 85 km, this strait is of great importance in paleoanthropology: 20,000 years ago, a land bridge (Beringia) allowed passage on foot.',pays:'United States, Russia'},
+    width:'85 km', length:'85 km', depth:'50 m',
+  },
+  {
+    id:'florida',emoji:'🌴',lat:24.5,lng:-80.5,
+    fr:{name:'Détroit de Floride',sub:'Atlantique / Golfe du Mexique',desc:'Passage séparant la Floride de Cuba et des Bahamas, long d\'environ 800 km. Le puissant Gulf Stream y prend sa source, influençant profondément le climat de l\'Europe occidentale.',pays:'États-Unis, Cuba, Bahamas'},
+    en:{name:'Straits of Florida',sub:'Atlantic / Gulf of Mexico',desc:'Passage separating Florida from Cuba and the Bahamas, about 800 km long. The powerful Gulf Stream originates here, profoundly influencing the climate of Western Europe.',pays:'United States, Cuba, Bahamas'},
+    width:'150 km', length:'800 km', depth:'800 m',
+  },
+  {
+    id:'mozambique',emoji:'🌍',lat:-17.0,lng:42.5,
+    fr:{name:'Canal du Mozambique',sub:'Océan Indien',desc:'Passage maritime séparant Madagascar du continent africain, large d\'environ 400 km en son point le plus étroit. Long de 1 750 km, c\'est une voie commerciale importante pour l\'Afrique orientale.',pays:'Mozambique, Madagascar'},
+    en:{name:'Mozambique Channel',sub:'Indian Ocean',desc:'Sea passage separating Madagascar from the African continent, about 400 km wide at its narrowest. At 1,750 km long, it is an important trade route for East Africa.',pays:'Mozambique, Madagascar'},
+    width:'400 km', length:'1750 km', depth:'3292 m',
+  },
+  {
+    id:'taiwan',emoji:'🏝️',lat:24.5,lng:119.5,
+    fr:{name:'Détroit de Taïwan',sub:'Mer de Chine / Pacifique',desc:'Passage de 180 km de large séparant Taïwan de la Chine continentale. L\'un des points de tension géopolitique les plus sensibles du monde, il est au cœur des relations entre Pékin et Taipei.',pays:'Chine, Taïwan'},
+    en:{name:'Taiwan Strait',sub:'South China Sea / Pacific',desc:'A 180 km wide passage separating Taiwan from mainland China. One of the world\'s most sensitive geopolitical flashpoints, central to relations between Beijing and Taipei.',pays:'China, Taiwan'},
+    width:'180 km', length:'300 km', depth:'70 m',
+  },
+  {
+    id:'lombok',emoji:'🌺',lat:-8.5,lng:115.8,
+    fr:{name:'Détroit de Lombok',sub:'Mer de Java / Mer de Flores',desc:'Séparant les îles de Bali et Lombok en Indonésie, ce détroit est célèbre en biogéographie pour la "Ligne Wallace" : une frontière entre les faunes asiatique et australasienne.',pays:'Indonésie'},
+    en:{name:'Lombok Strait',sub:'Java Sea / Flores Sea',desc:'Separating the islands of Bali and Lombok in Indonesia, this strait is famous in biogeography for the "Wallace Line": a boundary between Asian and Australasian fauna.',pays:'Indonesia'},
+    width:'40 km', length:'60 km', depth:'250 m',
+  },
+  {
+    id:'bassdetorres',emoji:'🦘',lat:-10.6,lng:142.2,
+    fr:{name:'Détroit de Torres',sub:'Mer de Corail / Mer d\'Arafura',desc:'Séparant l\'Australie de la Nouvelle-Guinée, ce détroit peu profond de 150 km de large est parsemé de plus de 270 îles et récifs. Il abrite des communautés insulaires d\'une grande richesse culturelle.',pays:'Australie, Papouasie-Nouvelle-Guinée'},
+    en:{name:'Torres Strait',sub:'Coral Sea / Arafura Sea',desc:'Separating Australia from New Guinea, this shallow 150 km wide strait is dotted with over 270 islands and reefs. It is home to island communities of great cultural richness.',pays:'Australia, Papua New Guinea'},
+    width:'150 km', length:'150 km', depth:'12 m',
+  },
+  {
+    id:'sunda',emoji:'🌋',lat:-6.0,lng:105.8,
+    fr:{name:'Détroit de la Sonde',sub:'Mer de Java / Océan Indien',desc:'Passage entre Java et Sumatra, célèbre pour l\'éruption du Krakatoa en 1883 qui provoqua un tsunami dévastateur. Large d\'environ 24 km, c\'est une route maritime vitale.',pays:'Indonésie'},
+    en:{name:'Sunda Strait',sub:'Java Sea / Indian Ocean',desc:'Passage between Java and Sumatra, famous for the 1883 Krakatoa eruption that caused a devastating tsunami. About 24 km wide, it is a vital shipping route.',pays:'Indonesia'},
+    width:'24 km', length:'130 km', depth:'20 m',
+  },
+  {
+    id:'messine',emoji:'🍋',lat:38.2,lng:15.6,
+    fr:{name:'Détroit de Messine',sub:'Mer Tyrrhénienne / Mer Ionienne',desc:'Séparant la Sicile de la Calabre (Italie), ce détroit n\'est large que de 3 km en son point le plus étroit. Il est associé aux mythiques Charybde et Scylla de la mythologie grecque.',pays:'Italie'},
+    en:{name:'Strait of Messina',sub:'Tyrrhenian Sea / Ionian Sea',desc:'Separating Sicily from Calabria (Italy), this strait is only 3 km wide at its narrowest point. It is associated with the mythical Charybdis and Scylla of Greek mythology.',pays:'Italy'},
+    width:'3 km', length:'32 km', depth:'250 m',
+  },
+  {
+    id:'sicile',emoji:'🏛️',lat:37.3,lng:11.1,
+    fr:{name:'Canal de Sicile',sub:'Méditerranée',desc:'Passage entre la Tunisie et la Sicile, large d\'environ 145 km. Il divise la Méditerranée en deux bassins et est une route migratoire et commerciale majeure depuis l\'Antiquité.',pays:'Italie, Tunisie, Malte'},
+    en:{name:'Strait of Sicily',sub:'Mediterranean Sea',desc:'Passage between Tunisia and Sicily, about 145 km wide. It divides the Mediterranean into two basins and has been a major migration and trade route since Antiquity.',pays:'Italy, Tunisia, Malta'},
+    width:'145 km', length:'145 km', depth:'316 m',
+  },
+  {
+    id:'oresund',emoji:'🎡',lat:55.9,lng:12.7,
+    fr:{name:'Détroit d\'Øresund',sub:'Mer du Nord / Baltique',desc:'Séparant le Danemark de la Suède, ce détroit est franchi par le spectaculaire pont de l\'Øresund (8 km), inauguré en 2000. Il est l\'un des passages les plus fréquentés de la Baltique.',pays:'Danemark, Suède'},
+    en:{name:'Øresund Strait',sub:'North Sea / Baltic Sea',desc:'Separating Denmark from Sweden, this strait is crossed by the spectacular Øresund Bridge (8 km), opened in 2000. It is one of the busiest passages in the Baltic.',pays:'Denmark, Sweden'},
+    width:'4 km', length:'113 km', depth:'7 m',
+  },
+  {
+    id:'corfou',emoji:'🫒',lat:39.6,lng:19.9,
+    fr:{name:'Canal de Corfou',sub:'Mer Adriatique / Mer Ionienne',desc:'Passage entre l\'île grecque de Corfou et la côte albanaise. Il est célèbre pour l\'affaire du Détroit de Corfou (1946-49), première affaire soumise à la Cour internationale de justice.',pays:'Grèce, Albanie'},
+    en:{name:'Corfu Channel',sub:'Adriatic Sea / Ionian Sea',desc:'Passage between the Greek island of Corfu and the Albanian coast. Famous for the Corfu Channel case (1946-49), the first case submitted to the International Court of Justice.',pays:'Greece, Albania'},
+    width:'3 km', length:'48 km', depth:'100 m',
+  },
+  {
+    id:'bonifacio',emoji:'🏔️',lat:41.3,lng:9.2,
+    fr:{name:'Bouches de Bonifacio',sub:'Méditerranée',desc:'Détroit séparant la Corse de la Sardaigne, large de seulement 11 km. Ses eaux turquoise, ses îles Lavezzi et ses courants puissants en font une zone marine protégée internationalement reconnue.',pays:'France, Italie'},
+    en:{name:'Strait of Bonifacio',sub:'Mediterranean Sea',desc:'Strait separating Corsica from Sardinia, only 11 km wide. Its turquoise waters, Lavezzi islands and powerful currents make it an internationally recognized protected marine area.',pays:'France, Italy'},
+    width:'11 km', length:'20 km', depth:'55 m',
+  },
+  {
+    id:'formose',emoji:'🌊',lat:28.0,lng:121.0,
+    fr:{name:'Canal de Formose',sub:'Mer de Chine',desc:'Ancien nom du détroit de Taïwan utilisé par les navigateurs européens. "Formose" (belle île) était le nom portugais de Taïwan. Ce canal reste l\'un des passages maritimes les plus surveillés.',pays:'Chine, Taïwan'},
+    en:{name:'Formosa Channel',sub:'China Sea',desc:'Former name for the Taiwan Strait used by European navigators. "Formosa" (beautiful island) was the Portuguese name for Taiwan. This channel remains one of the most monitored sea passages.',pays:'China, Taiwan'},
+    width:'180 km', length:'300 km', depth:'60 m',
+  },
+  {
+    id:'yucatan',emoji:'🐊',lat:21.7,lng:-85.8,
+    fr:{name:'Canal du Yucatán',sub:'Golfe du Mexique / Mer des Caraïbes',desc:'Passage de 240 km entre le Mexique (Yucatán) et Cuba. Il constitue la principale entrée des eaux atlantiques dans le Golfe du Mexique et alimente en partie le Gulf Stream.',pays:'Mexique, Cuba'},
+    en:{name:'Yucatan Channel',sub:'Gulf of Mexico / Caribbean Sea',desc:'A 240 km passage between Mexico (Yucatan) and Cuba. It is the main entry point for Atlantic waters into the Gulf of Mexico and partly feeds the Gulf Stream.',pays:'Mexico, Cuba'},
+    width:'240 km', length:'240 km', depth:'1950 m',
+  },
+  {
+    id:'manche',emoji:'⚓',lat:49.5,lng:-2.0,
+    fr:{name:'Manche',sub:'Atlantique / Mer du Nord',desc:'La Manche (English Channel) est la mer marginale séparant la France de l\'Angleterre. Large de 180 km en son point le plus large, elle est parcourue par environ 400 à 500 navires par jour.',pays:'France, Royaume-Uni'},
+    en:{name:'English Channel',sub:'Atlantic / North Sea',desc:'The English Channel separates France from England. Up to 180 km wide at its widest, it is crossed by approximately 400 to 500 ships per day.',pays:'France, United Kingdom'},
+    width:'34 km', length:'560 km', depth:'174 m',
+  },
+  {
+    id:'hudsonbay',emoji:'🐻‍❄️',lat:60.0,lng:-85.0,
+    fr:{name:'Détroit d\'Hudson',sub:'Atlantique / Baie d\'Hudson',desc:'Passage arctique de 800 km entre le Québec et l\'île de Baffin, menant à la vaste baie d\'Hudson. Découvert par Henry Hudson en 1610, il fut une voie stratégique pour la traite des fourrures.',pays:'Canada'},
+    en:{name:'Hudson Strait',sub:'Atlantic / Hudson Bay',desc:'An 800 km Arctic passage between Quebec and Baffin Island, leading to the vast Hudson Bay. Discovered by Henry Hudson in 1610, it was a strategic route for the fur trade.',pays:'Canada'},
+    width:'65 km', length:'800 km', depth:'457 m',
+  },
+  {
+    id:'northumberland',emoji:'🦞',lat:46.5,lng:-63.5,
+    fr:{name:'Détroit de Northumberland',sub:'Atlantique / Golfe Saint-Laurent',desc:'Passage séparant l\'Île-du-Prince-Édouard du Nouveau-Brunswick et de la Nouvelle-Écosse au Canada. Le pont de la Confédération (12,9 km), inauguré en 1997, le traverse.',pays:'Canada'},
+    en:{name:'Northumberland Strait',sub:'Atlantic / Gulf of St. Lawrence',desc:'Passage separating Prince Edward Island from New Brunswick and Nova Scotia in Canada. The Confederation Bridge (12.9 km), opened in 1997, crosses it.',pays:'Canada'},
+    width:'13 km', length:'225 km', depth:'30 m',
+  },
+  {
+    id:'davis',emoji:'🧊',lat:67.0,lng:-57.0,
+    fr:{name:'Détroit de Davis',sub:'Baie de Baffin / Atlantique',desc:'Passage arctique de 800 km entre le Groenland et l\'île de Baffin, découvert par John Davis en 1585. Il est soumis aux aléas des glaces arctiques et revêt une importance stratégique croissante avec la fonte des glaces.',pays:'Canada, Danemark (Groenland)'},
+    en:{name:'Davis Strait',sub:'Baffin Bay / Atlantic',desc:'An 800 km Arctic passage between Greenland and Baffin Island, discovered by John Davis in 1585. It is subject to Arctic ice conditions and holds growing strategic importance as ice melts.',pays:'Canada, Denmark (Greenland)'},
+    width:'290 km', length:'800 km', depth:'3660 m',
+  },
+  {
+    id:'bass',emoji:'🐧',lat:-39.5,lng:146.0,
+    fr:{name:'Détroit de Bass',sub:'Pacifique Sud',desc:'Séparant l\'Australie (Victoria) de l\'île de Tasmanie, ce détroit de 240 km de large est connu pour ses eaux agitées. Il abrite de petites îles comme Flinders et King Island.',pays:'Australie'},
+    en:{name:'Bass Strait',sub:'South Pacific',desc:'Separating mainland Australia (Victoria) from Tasmania, this 240 km wide strait is known for its rough waters. It is home to small islands such as Flinders and King Island.',pays:'Australia'},
+    width:'240 km', length:'300 km', depth:'70 m',
+  },
+  {
+    id:'coree',emoji:'🌸',lat:34.5,lng:129.5,
+    fr:{name:'Détroit de Corée',sub:'Mer du Japon / Mer de Chine',desc:'Passage de 180 km entre la Corée du Sud et le Japon (Kyushu). Théâtre de la bataille de Tsushima en 1905, où la marine japonaise battit la flotte russe, marquant un tournant de l\'histoire moderne.',pays:'Corée du Sud, Japon'},
+    en:{name:'Korea Strait',sub:'Sea of Japan / East China Sea',desc:'A 180 km passage between South Korea and Japan (Kyushu). Site of the Battle of Tsushima in 1905, where the Japanese navy defeated the Russian fleet, marking a turning point in modern history.',pays:'South Korea, Japan'},
+    width:'180 km', length:'180 km', depth:'228 m',
+  },
+  {
+    id:'mozambiquenord',emoji:'🌴',lat:-12.5,lng:44.5,
+    fr:{name:'Canal de Comores',sub:'Océan Indien',desc:'Passage entre Madagascar et l\'archipel des Comores, vital pour la navigation entre l\'Afrique orientale et l\'Asie. Les îles Comores ont déclaré leur indépendance unilatérale en 1975.',pays:'Madagascar, Comores, Mozambique'},
+    en:{name:'Comoro Channel',sub:'Indian Ocean',desc:'Passage between Madagascar and the Comoro archipelago, vital for navigation between East Africa and Asia. The Comoro Islands declared unilateral independence in 1975.',pays:'Madagascar, Comoros, Mozambique'},
+    width:'300 km', length:'400 km', depth:'2000 m',
+  },
+  {
+    id:'foveaux',emoji:'🐑',lat:-46.6,lng:168.2,
+    fr:{name:'Détroit de Foveaux',sub:'Mer de Tasman / Pacifique Sud',desc:'Passage de 35 km séparant l\'île du Sud de la Nouvelle-Zélande de l\'île Stewart. Ses eaux sont parmi les plus poissonneuses du pays, notamment pour l\'huitre de Bluff, un mets très apprécié.',pays:'Nouvelle-Zélande'},
+    en:{name:'Foveaux Strait',sub:'Tasman Sea / South Pacific',desc:'A 35 km passage separating New Zealand\'s South Island from Stewart Island. Its waters are among the country\'s most productive, notably for the Bluff oyster, a prized delicacy.',pays:'New Zealand'},
+    width:'35 km', length:'35 km', depth:'40 m',
+  },
+];
+
+// Quiz questions generated from data
+function buildQuizQuestions(){
+  const qs = [];
+  // Q type 1: where is this strait?
+  STRAITS.forEach(s => {
+    const correct = s[LANG].sub;
+    const wrongs = STRAITS.filter(x=>x[LANG].sub !== correct).map(x=>x[LANG].sub);
+    const uniq = [...new Set(wrongs)].sort(()=>Math.random()-0.5).slice(0,3);
+    const opts = [correct,...uniq].sort(()=>Math.random()-0.5);
+    const qText = LANG==='fr'
+      ? `Quels mers ou océans relie le ${s.fr.name} ?`
+      : `What bodies of water does the ${s.en.name} connect?`;
+    qs.push({question:qText, options:opts, answer:correct, expl: s[LANG].desc.slice(0,120)+'…'});
+  });
+  // Q type 2: which strait is between X countries?
+  STRAITS.forEach(s => {
+    const correct = s[LANG].name;
+    const wrongs = STRAITS.filter(x=>x.id!==s.id).map(x=>x[LANG].name).sort(()=>Math.random()-0.5).slice(0,3);
+    const opts = [correct,...wrongs].sort(()=>Math.random()-0.5);
+    const qText = LANG==='fr'
+      ? `Quel détroit se situe entre ${s.fr.pays} ?`
+      : `Which strait is located between ${s.en.pays}?`;
+    qs.push({question:qText, options:opts, answer:correct, expl: s[LANG].desc.slice(0,120)+'…'});
+  });
+  return qs.sort(()=>Math.random()-0.5).slice(0,20);
+}
+
+// ============================================================
+// APPS PORTFOLIO
+// ============================================================
+const APPS_PORTFOLIO = [
+  {id:'id6762370541',name:'États Unis'},
+  {id:'id6762091681',name:'Bataille Navale'},
+  {id:'id6762098486',name:'Familles Royales'},
+  {id:'id6762263227',name:'Leaders Européens'},
+  {id:'id6762346365',name:'Pays UE'},
+  {id:'id6762256169',name:'Présidents Américains'},
+  {id:'id6762076518',name:'Dames Checkers'},
+  {id:'id6761993002',name:'Comédie Française'},
+  {id:'id6761769529',name:'Institut de France'},
+  {id:'id6761324444',name:'Présidents Français'},
+  {id:'id6761709149',name:'Basilique Saint-Denis'},
+  {id:'id6761685637',name:'Arbres de France'},
+  {id:'id6761363063',name:'Sénat Paris'},
+  {id:'id6761656628',name:'Compositeurs'},
+  {id:'id6761374601',name:'Maréchaux Napoléon'},
+  {id:'id6761322546',name:'Rois de France'},
+  {id:'id6761361079',name:'Assemblée Paris'},
+  {id:'id6761335268',name:'Panthéon Paris'},
+  {id:'id1483084001',name:'Belote Calc'},
+  {id:'id6760751055',name:'Cimetières Paris'},
+  {id:'id1481989301',name:'Tarots Calc'},
+  {id:'id6761334922',name:'Académie française'},
+  {id:'id6761293938',name:'Scènes Paris'},
+  {id:'id6761271324',name:'MediSafe-Pharmacie'},
+  {id:'id6760617965',name:'MesRestaurants'},
+  {id:'id6760126279',name:'Cave Manager'},
+  {id:'id6760890465',name:'Musées Paris'},
+  {id:'id6760929391',name:'Théâtres Paris'},
+  {id:'id6759219383',name:'Frigo Manager'},
+  {id:'id1475884625',name:'Toi ou Moi'},
+  {id:'id6761421276',name:'Capitales d\'Europe'},
+];
+const CURRENT_APP_ID = null; // pas encore soumis
+
+// ============================================================
+// LIST
+// ============================================================
+function renderList(filter=''){
+  const container = document.getElementById('strait-list');
+  const fl = filter.toLowerCase();
+  const items = STRAITS.filter(s => {
+    const n = s[LANG].name.toLowerCase();
+    const sub = s[LANG].sub.toLowerCase();
+    return n.includes(fl) || sub.includes(fl);
+  });
+  container.innerHTML = items.map(s => `
+    <div class="strait-item" onclick="openDetail('${s.id}')">
+      <div class="strait-emoji">${s.emoji}</div>
+      <div class="strait-info">
+        <div class="strait-name">${s[LANG].name}</div>
+        <div class="strait-sub">${s[LANG].sub}</div>
+      </div>
+      <div class="strait-length">${s.width}</div>
+    </div>
+  `).join('');
+}
+
+function filterList(val){
+  renderList(val);
+}
+
+// ============================================================
+// DETAIL
+// ============================================================
+function openDetail(id){
+  const s = STRAITS.find(x=>x.id===id);
+  if(!s) return;
+  const body = document.getElementById('detail-body');
+  body.innerHTML = `
+    <div style="font-size:36px;margin-bottom:6px">${s.emoji}</div>
+    <div class="detail-title">${s[LANG].name}</div>
+    <div class="detail-subtitle">${s[LANG].sub}</div>
+    <div class="detail-stats">
+      <div class="stat-card"><div class="stat-label">${t('statWidth')}</div><div class="stat-value">${s.width}</div></div>
+      <div class="stat-card"><div class="stat-label">${t('statLength')}</div><div class="stat-value">${s.length}</div></div>
+      <div class="stat-card"><div class="stat-label">${t('statDepth')}</div><div class="stat-value">${s.depth}</div></div>
+      <div class="stat-card"><div class="stat-label">${t('statCountries')}</div><div class="stat-value" style="font-size:12px;font-family:'Cormorant Garamond',serif;margin-top:4px">${s[LANG].pays}</div></div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-text">${s[LANG].desc}</div>
+    </div>
+    <button class="popup-btn" style="margin-top:8px" onclick="closeDetail(); switchTab('map'); setTimeout(()=>focusMarker('${s.id}'),300)">${t('detailMore')}</button>
+  `;
+  document.getElementById('detail-overlay').classList.add('open');
+}
+
+function closeDetail(e){
+  if(!e || e.target === document.getElementById('detail-overlay')){
+    document.getElementById('detail-overlay').classList.remove('open');
+  }
+}
+
+// ============================================================
+// MAP
+// ============================================================
+let map = null;
+let markers = [];
+
+function initMap(){
+  if(map) return;
+  map = L.map('map', {
+    center:[20,20], zoom:2,
+    zoomControl:true,
+    attributionControl:false,
+  });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© OpenStreetMap',
+    className:'map-tiles',
+  }).addTo(map);
+  // dark filter via CSS
+  const style = document.createElement('style');
+  style.textContent = `.map-tiles{filter:invert(1) hue-rotate(180deg) brightness(0.85) saturate(0.7);}`;
+  document.head.appendChild(style);
+  addAllMarkers();
+}
+
+function addAllMarkers(){
+  STRAITS.forEach(s => {
+    const icon = L.divIcon({
+      className:'',
+      html:`<div class="custom-marker">${s.emoji}</div>`,
+      iconSize:[28,28], iconAnchor:[14,14], popupAnchor:[0,-14],
+    });
+    const marker = L.marker([s.lat,s.lng],{icon}).addTo(map);
+    marker.bindPopup(`
+      <div class="popup-name">${s[LANG].name}</div>
+      <div class="popup-detail">${s[LANG].sub}</div>
+      <div class="popup-detail">${s.width} — ${s[LANG].pays}</div>
+      <button class="popup-btn" onclick="map.closePopup();openDetail('${s.id}')">${t('popupBtn')}</button>
+    `, {maxWidth:220});
+    markers.push({id:s.id, marker, strait:s});
+  });
+}
+
+function refreshMarkers(){
+  markers.forEach(({marker, strait:s}) => {
+    marker.setPopupContent(`
+      <div class="popup-name">${s[LANG].name}</div>
+      <div class="popup-detail">${s[LANG].sub}</div>
+      <div class="popup-detail">${s.width} — ${s[LANG].pays}</div>
+      <button class="popup-btn" onclick="map.closePopup();openDetail('${s.id}')">${t('popupBtn')}</button>
+    `);
+  });
+}
+
+function focusMarker(id){
+  const m = markers.find(x=>x.id===id);
+  if(!m) return;
+  map.setView([m.strait.lat, m.strait.lng], 5, {animate:true});
+  m.marker.openPopup();
+}
+
+// ============================================================
+// TABS
+// ============================================================
+let currentTab = 'list';
+
+function switchTab(tab){
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b.id==='tab-'+tab));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+
+  if(tab === 'map'){
+    const mapPanel = document.getElementById('panel-map');
+    mapPanel.style.display = 'flex';
+    mapPanel.classList.add('active');
+    // fix main height for map
+    document.getElementById('main-scroll').style.overflow = 'hidden';
+    document.getElementById('main-scroll').style.height = '100%';
+    setTimeout(()=>{ initMap(); map.invalidateSize(); },100);
+  } else {
+    document.getElementById('panel-map').style.display = 'none';
+    document.getElementById('main-scroll').style.overflow = '';
+    document.getElementById('main-scroll').style.height = '';
+    const p = document.getElementById('panel-'+tab);
+    if(p) p.classList.add('active');
+    if(tab==='quiz') initQuiz();
+    if(tab==='list') renderList();
+  }
+}
+
+// ============================================================
+// QUIZ
+// ============================================================
+let quizData = [];
+let quizIdx = 0;
+let quizScore = 0;
+let quizAnswered = false;
+
+function initQuiz(){
+  quizData = buildQuizQuestions();
+  quizIdx = 0; quizScore = 0;
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion(){
+  const container = document.getElementById('quiz-container');
+  if(quizIdx >= quizData.length){
+    const pct = Math.round((quizScore/quizData.length)*100);
+    let icon = pct >= 80 ? '🏆' : pct >= 50 ? '⭐' : '📚';
+    container.innerHTML = `
+      <div class="quiz-end">
+        <div class="quiz-end-icon">${icon}</div>
+        <div class="quiz-end-title">${t('quizEndTitle')}</div>
+        <div class="quiz-end-text">${t('quizEndText')} : ${quizScore} / ${quizData.length} (${pct}%)</div>
+        <button class="quiz-restart" onclick="initQuiz()">${t('quizRestart')}</button>
+      </div>`;
+    return;
+  }
+  const q = quizData[quizIdx];
+  quizAnswered = false;
+  container.innerHTML = `
+    <div class="quiz-score-bar">
+      <span class="quiz-score-label">${t('quizScore')}</span>
+      <span class="quiz-score-val">${quizScore} / ${quizData.length}</span>
+    </div>
+    <div class="quiz-card">
+      <div class="quiz-q-num">${t('quizQ')} ${quizIdx+1} ${t('quizOf')} ${quizData.length}</div>
+      <div class="quiz-question">${q.question}</div>
+      <div class="quiz-options" id="quiz-opts">
+        ${q.options.map((o,i)=>`
+          <button class="quiz-option" id="qopt-${i}" onclick="answerQuiz(${i},'${escQ(o)}','${escQ(q.answer)}')">${o}</button>
+        `).join('')}
+      </div>
+      <div id="quiz-feedback" class="quiz-feedback" style="display:none"></div>
+      <button class="quiz-next" id="quiz-next-btn" onclick="nextQuiz()">${t('quizNext')}</button>
+    </div>`;
+}
+
+function escQ(s){ return s.replace(/'/g,"&#39;") }
+
+function answerQuiz(idx, chosen, answer){
+  if(quizAnswered) return;
+  quizAnswered = true;
+  const opts = document.querySelectorAll('.quiz-option');
+  opts.forEach(b=>b.disabled=true);
+  const correct = chosen === answer;
+  if(correct) quizScore++;
+  opts[idx].classList.add(correct?'correct':'wrong');
+  // reveal correct
+  opts.forEach((b,i)=>{
+    if(b.textContent.trim() === answer) b.classList.add(correct?'correct':'reveal');
+  });
+  const fb = document.getElementById('quiz-feedback');
+  fb.style.display='block';
+  fb.className = 'quiz-feedback '+(correct?'ok':'ko');
+  const q = quizData[quizIdx];
+  fb.textContent = (correct ? t('quizCorrect') : t('quizWrong')) + ' ' + q.expl;
+  document.getElementById('quiz-next-btn').classList.add('show');
+}
+
+function nextQuiz(){
+  quizIdx++;
+  renderQuizQuestion();
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+function openSettings(){
+  const overlay = document.getElementById('settings-overlay');
+  overlay.classList.add('open');
+  renderSettings();
+}
+
+function closeSettings(e){
+  if(!e || e.target===document.getElementById('settings-overlay')){
+    document.getElementById('settings-overlay').classList.remove('open');
+  }
+}
+
+function renderSettings(){
+  const list = document.getElementById('apps-list');
+  list.innerHTML = APPS_PORTFOLIO.map(app => {
+    const numId = app.id.replace('id','');
+    const imgId = 'icon-'+numId;
+    return `
+      <div class="app-row" onclick="openApp('${numId}')">
+        <img class="app-real-icon" id="${imgId}" src="" alt="${app.name}">
+        <div class="app-name">${app.name}</div>
+        <img class="app-store-badge" src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/fr-fr" alt="App Store">
+      </div>`;
+  }).join('');
+  // Load icons via JSONP
+  APPS_PORTFOLIO.forEach(app => {
+    const numId = app.id.replace('id','');
+    window['itcb'+numId] = function(d){
+      const img = document.getElementById('icon-'+numId);
+      if(img && d.results && d.results[0]) img.src = d.results[0].artworkUrl60;
+    };
+    const s = document.createElement('script');
+    s.src = 'https://itunes.apple.com/lookup?id='+numId+'&callback=itcb'+numId;
+    document.body.appendChild(s);
+  });
+}
+
+function openApp(id){
+  const url = 'https://apps.apple.com/app/id'+id;
+  if(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser){
+    window.Capacitor.Plugins.Browser.open({url});
+  } else {
+    window.open(url,'_system');
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', ()=>{
+  renderList();
+  applyLang();
+});
+</script>
+</body>
+</html>
