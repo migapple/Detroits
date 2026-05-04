@@ -369,7 +369,7 @@ html,body{height:100%;overflow:hidden;background:var(--ink)}
       <span id="app-subtitle">Passages du Monde</span>
       <span id="app-title-main">Détroits</span>
     </div>
-    <button class="icon-btn" onclick="openSettings()">⚙️</button>
+    <button class="icon-btn" onclick="openSettings()">📱</button>
   </div>
 
   <!-- TABS -->
@@ -510,6 +510,12 @@ const STRAITS = [
     en:{name:'Strait of Hormuz',sub:'Persian Gulf / Sea of Oman',desc:'One of the world\'s most strategic straits: approximately 20% of global oil transits through this 33 km wide passage. It separates Oman and the UAE from Iran.',pays:'Iran, Oman, United Arab Emirates'},
     width:'33 km', length:'80 km', depth:'60 m',
   },
+     {
+       id:'Mandeb',emoji:'⚓',lat:12.5833,lng:43.3333,
+       fr:{name:'Détroit de Bab-el-Mandeb',sub:'Dijbouti / Yemen',desc:'Le Bab-el-Mandeb est à la fois un emplacement stratégique important et l\'un des couloirs de navigation les plus fréquentés au monde. Il est situé sur l\'itinéraire empruntant la mer Rouge et le canal de Suez et concentrait, en 2023, 12 % du trafic maritime mondial, dont 75 % des exportations européennes[1]. Pour le commerce entre l\'Europe du Nord et l\'Asie, l\'alternative passe par le cap de Bonne-Espérance, soit un détour de 6 500 km['},
+       en:{name:'Strait of Bab-el-Mandeb',sub:'Persian Gulf / Sea of Oman',desc:'The Bab-el-Mandeb is a strait and a major global chokepoint between Yemen on the Arabian Peninsula and Djibouti and Eritrea in the Horn of Africa, connecting the Red Sea to the Gulf of Aden and by extension the Indian Ocean.'},
+       width:'27 km', length:'75 km', depth:'30 m',
+     },
   {
     id:'malacca',emoji:'🚢',lat:2.5,lng:101.5,
     fr:{name:'Détroit de Malacca',sub:'Mer d\'Andaman / Mer de Chine',desc:'Voie maritime la plus fréquentée au monde : plus de 80 000 navires par an. Long de 800 km, il sépare la péninsule malaisienne de Sumatra. Passage vital du commerce Asie-Europe.',pays:'Malaisie, Singapour, Indonésie'},
@@ -711,38 +717,33 @@ function buildQuizQuestions(){
 // APPS PORTFOLIO
 // ============================================================
 const APPS_PORTFOLIO = [
-  {id:'id6762370541',name:'États Unis'},
-  {id:'id6762091681',name:'Bataille Navale'},
-  {id:'id6762098486',name:'Familles Royales'},
-  {id:'id6762263227',name:'Leaders Européens'},
-  {id:'id6762346365',name:'Pays UE'},
-  {id:'id6762256169',name:'Présidents Américains'},
-  {id:'id6762076518',name:'Dames Checkers'},
-  {id:'id6761993002',name:'Comédie Française'},
-  {id:'id6761769529',name:'Institut de France'},
-  {id:'id6761324444',name:'Présidents Français'},
-  {id:'id6761709149',name:'Basilique Saint-Denis'},
-  {id:'id6761685637',name:'Arbres de France'},
-  {id:'id6761363063',name:'Sénat Paris'},
-  {id:'id6761656628',name:'Compositeurs'},
-  {id:'id6761374601',name:'Maréchaux Napoléon'},
-  {id:'id6761322546',name:'Rois de France'},
-  {id:'id6761361079',name:'Assemblée Paris'},
-  {id:'id6761335268',name:'Panthéon Paris'},
-  {id:'id1483084001',name:'Belote Calc'},
-  {id:'id6760751055',name:'Cimetières Paris'},
-  {id:'id1481989301',name:'Tarots Calc'},
-  {id:'id6761334922',name:'Académie française'},
-  {id:'id6761293938',name:'Scènes Paris'},
-  {id:'id6761271324',name:'MediSafe-Pharmacie'},
-  {id:'id6760617965',name:'MesRestaurants'},
-  {id:'id6760126279',name:'Cave Manager'},
-  {id:'id6760890465',name:'Musées Paris'},
-  {id:'id6760929391',name:'Théâtres Paris'},
-  {id:'id6759219383',name:'Frigo Manager'},
-  {id:'id1475884625',name:'Toi ou Moi'},
-  {id:'id6761421276',name:'Capitales d\'Europe'},
-];
+                        
+    {id:'6763507194',name:'Hotels Rooftop',emoji:'🏨'},{id:'6762618424',name:'Ponts du Monde',emoji:'🌉'},
+    {id:'6763076110',name:'Paquebots',emoji:'🚢'},{id:'6763069304',name:'Avions de Légende',emoji:'✈️'},
+    {id:'6763071567',name:'Voitures Légende',emoji:'🚗'},{id:'6762077646',name:'Flip Board',emoji:'🎮'},
+    {id:'6762632868',name:'Trains Mythiques',emoji:'🚂'},{id:'6762823383',name:'Châteaux Loire',emoji:'🏰'},
+    {id:'6762598304',name:'Mers & Océans',emoji:'🌊'},
+    {id:'6762558969',name:'ColorCodeMind',emoji:'🎨'},{id:'6762552826',name:'Lexigo',emoji:'🔤'},
+    {id:'6762542395',name:'Conquêtes Sociales',emoji:'✊'},{id:'6762522136',name:'Dynasties Chinoises',emoji:'🐉'},
+    {id:'6762452564',name:'Dynasties Russes',emoji:'🦅'},{id:'6762370541',name:'États-Unis',emoji:'🗽'},
+    {id:'6762091681',name:'Bataille Navale',emoji:'⚓'},{id:'6762098486',name:'Familles Royales',emoji:'👑'},
+    {id:'6762263227',name:'Leaders Européens',emoji:'🇪🇺'},{id:'6762346365',name:'Pays UE',emoji:'🌍'},
+    {id:'6762256169',name:'Présidents US',emoji:'🦅'},{id:'6762076518',name:'Dames',emoji:'♟️'},
+    {id:'6761993002',name:'Comédie Fr.',emoji:'🎭'},{id:'6761769529',name:'Institut de France',emoji:'🏛️'},
+    {id:'6761324444',name:'Présidents FR',emoji:'🇫🇷'},{id:'6761709149',name:'Saint-Denis',emoji:'⛪'},
+    {id:'6761685637',name:'Arbres de France',emoji:'🌳'},{id:'6761363063',name:'Sénat Paris',emoji:'🏛️'},
+    {id:'6761656628',name:'Compositeurs',emoji:'🎼'},{id:'6761374601',name:'Maréchaux Napoléon',emoji:'⚔️'},
+    {id:'6761322546',name:'Rois de France',emoji:'👑'},{id:'6761361079',name:'Assemblée Paris',emoji:'🏛️'},
+    {id:'6761335268',name:'Panthéon Paris',emoji:'🏛️'},{id:'1483084001',name:'Belote Calc',emoji:'🃏'},
+    {id:'6760751055',name:'Cimetières Paris',emoji:'🪦'},{id:'1481989301',name:'Tarots Calc',emoji:'🔮'},
+    {id:'6761334922',name:'Académie fr.',emoji:'📚'},{id:'6761293938',name:'Scènes Paris',emoji:'🎭'},
+    {id:'6761271324',name:'MediSafe',emoji:'💊'},{id:'6760617965',name:'MesRestaurants',emoji:'🍽️'},
+    {id:'6760126279',name:'Cave Manager',emoji:'🍷'},{id:'6760890465',name:'Musées Paris',emoji:'🖼️'},
+    {id:'6760929391',name:'Théâtres Paris',emoji:'🎬'},{id:'6759219383',name:'Frigo Manager',emoji:'🧊'},
+    {id:'1475884625',name:'Toi ou Moi',emoji:'❤️'},{id:'6761421276',name:'Capitales Europe',emoji:'🗺️'},
+    {id:'6762006105',name:'Iconic Covers',emoji:'📰'},
+  ];
+
 const CURRENT_APP_ID = null; // pas encore soumis
 
 // ============================================================
