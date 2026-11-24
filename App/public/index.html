@@ -481,7 +481,7 @@ function toggleLang(){
   applyLang();
   renderList();
   if(currentTab === 'quiz') initQuiz();
-  if(currentTab === 'map' && map) refreshMarkers();
+  if(map){ setTiles(); refreshMarkers(); }
 }
 
 function applyLang(){
@@ -684,6 +684,12 @@ const STRAITS = [
     en:{name:'Foveaux Strait',sub:'Tasman Sea / South Pacific',desc:'A 35 km passage separating New Zealand\'s South Island from Stewart Island. Its waters are among the country\'s most productive, notably for the Bluff oyster, a prized delicacy.',pays:'New Zealand'},
     width:'35 km', length:'35 km', depth:'40 m',
   },
+                 {
+                     id:'kertch',emoji:'🏗️',lat:45.32,lng:36.62,
+                     fr:{name:'Détroit de Kertch',sub:'Mer Noire / Mer d\'Azov',desc:'Passage reliant la mer Noire à la mer d\'Azov, entre la péninsule de Kertch (Crimée) et la péninsule de Taman (Russie). Peu profond et long d\'environ 41 km, il était connu dans l\'Antiquité sous le nom de Bosphore cimmérien. Il est franchi depuis 2018 par le pont de Crimée (19 km), le plus long d\'Europe. Sa navigation est l\'objet de tensions depuis 2014.',pays:'Russie, Ukraine (Crimée, statut contesté)'},
+                     en:{name:'Kerch Strait',sub:'Black Sea / Sea of Azov',desc:'Passage connecting the Black Sea to the Sea of Azov, between the Kerch Peninsula (Crimea) and the Taman Peninsula (Russia). Shallow and about 41 km long, it was known in Antiquity as the Cimmerian Bosporus. Since 2018 it has been crossed by the Crimean Bridge (19 km), the longest in Europe. Navigation through it has been a source of tension since 2014.',pays:'Russia, Ukraine (Crimea, disputed status)'},
+                     width:'3 km', length:'41 km', depth:'18 m',
+               },
 ];
 
 // Quiz questions generated from data
@@ -810,6 +816,19 @@ function closeDetail(e){
 let map = null;
 let markers = [];
 
+let tileLayer = null;
+function setTiles(){
+  if(tileLayer) map.removeLayer(tileLayer);
+  const url = LANG==='fr'
+    ? 'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png'
+    : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png';
+  tileLayer = L.tileLayer(url,{
+    attribution:'© OpenStreetMap',
+    className:'map-tiles',
+    maxZoom:18,
+  }).addTo(map);
+}
+
 function initMap(){
   if(map) return;
   map = L.map('map', {
@@ -817,10 +836,7 @@ function initMap(){
     zoomControl:true,
     attributionControl:false,
   });
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-    attribution:'© OpenStreetMap',
-    className:'map-tiles',
-  }).addTo(map);
+  setTiles();
   // dark filter via CSS
   const style = document.createElement('style');
   style.textContent = `.map-tiles{filter:invert(1) hue-rotate(180deg) brightness(0.85) saturate(0.7);}`;
