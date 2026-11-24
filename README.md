@@ -1,5 +1,8 @@
 # Detroits
 
+# 1.2
+Adding Strait of kertch
+
 # 1.1
 Adding Strait of Bab-el-Mandeb
 Update of Others Apps
